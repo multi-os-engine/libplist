@@ -56,7 +56,12 @@ static void internal_plist_deinit(void)
     plist_xml_deinit();
 }
 
-#ifdef WIN32
+#ifdef MOE
+
+// MOE: We don't need initializers, because currently they are only
+// debug related.
+
+#elif defined(WIN32)
 
 typedef volatile struct {
     LONG lock;
