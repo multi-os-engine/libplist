@@ -1,10 +1,8 @@
 /*
- * list.c
+ * bplist_fuzzer.cc
+ * binary plist fuzz target for libFuzzer
  *
- *  Created on: Mar 8, 2011
- *      Author: posixninja
- *
- * Copyright (c) 2011 Joshua Hill. All Rights Reserved.
+ * Copyright (c) 2017 Nikias Bassen All Rights Reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,27 +19,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <plist/plist.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-#include "list.h"
+extern "C" int LLVMFuzzerTestOneInput(const unsigned char* data, size_t size)
+{
+	plist_t root_node = NULL;
+	plist_from_bin(reinterpret_cast<const char*>(data), size, &root_node);
+	plist_free(root_node);
 
-void list_init(list_t* list) {
-	list->next = NULL;
-	list->prev = list;
-}
-
-
-void list_destroy(list_t* list) {
-	if(list) {
-		free(list);
-	}
-}
-
-int list_add(list_t* list, object_t* object) {
-	return -1;
-}
-
-int list_remove(list_t* list, object_t* object) {
-	return -1;
+	return 0;
 }
