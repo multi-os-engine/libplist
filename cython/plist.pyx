@@ -2,10 +2,6 @@ cimport cpython
 cimport libc.stdlib
 from libc.stdint cimport *
 
-# https://groups.google.com/forum/#!topic/cython-users/xoKNFTRagvk
-cdef _from_string_and_size(char *s, size_t length):
-    return s[:length].encode('utf-8')
-
 cdef extern from *:
     ctypedef enum plist_type:
         PLIST_BOOLEAN,
@@ -457,6 +453,8 @@ cdef String String_factory(plist_t c_node, bint managed=True):
     instance._c_node = c_node
     return instance
 
+MAC_EPOCH = 978307200
+
 cdef extern from "plist_util.h":
     void datetime_to_ints(object obj, int32_t* sec, int32_t* usec)
     object ints_to_datetime(int32_t sec, int32_t usec)
@@ -470,6 +468,7 @@ cdef plist_t create_date_plist(value=None):
         node = plist_new_date(0, 0)
     elif check_datetime(value):
         datetime_to_ints(value, &secs, &usecs)
+        secs -= MAC_EPOCH
         node = plist_new_date(secs, usecs)
     return node
 
@@ -500,6 +499,7 @@ cdef class Date(Node):
         cdef int32_t secs = 0
         cdef int32_t usecs = 0
         plist_get_date_val(self._c_node, &secs, &usecs)
+        secs += MAC_EPOCH
         return ints_to_datetime(secs, usecs)
 
     cpdef set_value(self, object value):
@@ -549,7 +549,7 @@ cdef class Data(Node):
         plist_get_data_val(self._c_node, &val, &length)
 
         try:
-            return _from_string_and_size(val, length)
+            return bytes(val[:length])
         finally:
             libc.stdlib.free(val)
 
